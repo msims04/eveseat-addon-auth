@@ -1,0 +1,17 @@
+{
+	"name": "msims04/eveseat-addon-auth",
+	"description": "An EVE SeAT addon that allows members to login to external applications.",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Mike Sims",
+			"email": "msims04@gmail.com"
+		}
+	],
+	"require": {},
+	"autoload": {
+		"psr-4": {
+			"Seat\\Addon\\Auth\\": "src/app/"
+		}
+	}
+}
