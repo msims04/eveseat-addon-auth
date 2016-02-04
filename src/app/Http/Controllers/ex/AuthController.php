@@ -82,7 +82,7 @@ class AuthController extends Controller
 			$accessMask = config("addon.auth.{$this->service}_accessMask");
 
 			if (!$item->enabled || !!$item->info->expires) { return; }
-			if ($item->info->accessMask != $accessMask)    { return; }
+			if ($item->info->accessMask & $accessMask != $accessMask) { return; }
 
 			return $item->characters[0]; })
 		->filter(function ($item) { return $item != null; });
