@@ -190,8 +190,8 @@ class seat extends \phpbb\auth\provider\base
 			],
 			CURLOPT_POST           => true,
 			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_SSL_VERIFYHOST => $this->config['seat_verify_ssl'] === 'on',
-			CURLOPT_SSL_VERIFYPEER => $this->config['seat_verify_ssl'] === 'on',
+			CURLOPT_SSL_VERIFYHOST => $this->config['seat_verify_ssl'] === 'on' ? 2 : 0,
+			CURLOPT_SSL_VERIFYPEER => $this->config['seat_verify_ssl'] === 'on' ? 1 : 0,
 		]);
 
 		$response = json_decode(curl_exec($curl), true);
@@ -220,8 +220,8 @@ class seat extends \phpbb\auth\provider\base
 			],
 			CURLOPT_POST           => true,
 			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_SSL_VERIFYHOST => $this->config['seat_verify_ssl'] === 'on',
-			CURLOPT_SSL_VERIFYPEER => $this->config['seat_verify_ssl'] === 'on',
+			CURLOPT_SSL_VERIFYHOST => $this->config['seat_verify_ssl'] === 'on' ? 2 : 0,
+			CURLOPT_SSL_VERIFYPEER => $this->config['seat_verify_ssl'] === 'on' ? 1 : 0,
 		]);
 
 		$response = json_decode(curl_exec($curl), true);

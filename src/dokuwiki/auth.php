@@ -134,8 +134,8 @@ class auth_plugin_authseat extends DokuWiki_Auth_Plugin
 			],
 			CURLOPT_POST           => true,
 			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_SSL_VERIFYHOST => $settings['seat_verify_ssl'] === 'on',
-			CURLOPT_SSL_VERIFYPEER => $settings['seat_verify_ssl'] === 'on',
+			CURLOPT_SSL_VERIFYHOST => $settings['seat_verify_ssl'] === 'on' ? 2 : 0,
+			CURLOPT_SSL_VERIFYPEER => $settings['seat_verify_ssl'] === 'on' ? 1 : 0,
 		]);
 
 		$response = json_decode(curl_exec($curl), true);
@@ -167,8 +167,8 @@ class auth_plugin_authseat extends DokuWiki_Auth_Plugin
 			],
 			CURLOPT_POST           => true,
 			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_SSL_VERIFYHOST => $settings['seat_verify_ssl'] === 'on',
-			CURLOPT_SSL_VERIFYPEER => $settings['seat_verify_ssl'] === 'on',
+			CURLOPT_SSL_VERIFYHOST => $settings['seat_verify_ssl'] === 'on' ? 2 : 0,
+			CURLOPT_SSL_VERIFYPEER => $settings['seat_verify_ssl'] === 'on' ? 1 : 0,
 		]);
 
 		$response = json_decode(curl_exec($curl), true);
