@@ -111,9 +111,15 @@ class AuthController extends Controller
 	 */
 	private function isCharacterAuthorized(CharacterSheet $character)
 	{
-		if (in_array($character->allianceID   , config("addon.auth.{$this->service}_alliances"   ))) { return true; }
-		if (in_array($character->corporationID, config("addon.auth.{$this->service}_corporations"))) { return true; }
-		if (in_array($character->characterID  , config("addon.auth.{$this->service}_characters"  ))) { return true; }
+		// Blacklist
+		if (in_array(-$character->allianceID   , config("addon.auth.{$this->service}_alliances"   ))) { return false; }
+		if (in_array(-$character->corporationID, config("addon.auth.{$this->service}_corporations"))) { return false; }
+		if (in_array(-$character->characterID  , config("addon.auth.{$this->service}_characters"  ))) { return false; }
+
+		// Whitelist
+		if (in_array( $character->allianceID   , config("addon.auth.{$this->service}_alliances"   ))) { return true;  }
+		if (in_array( $character->corporationID, config("addon.auth.{$this->service}_corporations"))) { return true;  }
+		if (in_array( $character->characterID  , config("addon.auth.{$this->service}_characters"  ))) { return true;  }
 
 		return false;
 	}
@@ -200,9 +206,9 @@ class AuthController extends Controller
 		if (!$this->isCharacterAuthorized($character)) {
 			return $this->failure(AuthController::ERRNO_INVALID_CHARACTER_ACCESS, AuthController::ERROR_INVALID_CHARACTER_ACCESS); }
 
-		// Success! Cache the result for 30 minutes.
+		// Success! Cache the result for 15 minutes.
 		$details = $this->getDetails($user, $character);
-		Cache::put($key, $details, Carbon::now()->addMinutes(30));
+		Cache::put($key, $details, Carbon::now()->addMinutes(15));
 		return $this->success($details);
 	}
 }
