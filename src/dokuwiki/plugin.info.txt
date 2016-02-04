@@ -1,0 +1,7 @@
+base   authseat
+author Mike Sims
+email  msims04@gmail.com
+date   2015-10-01
+name   SeAT Authentication Plugin
+desc   SeAT Authentication Plugin for DokuWiki
+url    https://github.com/msims04/eveseat-addon-auth
