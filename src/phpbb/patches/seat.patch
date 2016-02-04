@@ -1,0 +1,55 @@
+diff --git a/app/controllers/api/AuthController.php b/app/controllers/api/AuthController.php
+index 9a48a4d..d6cd56a 100644
+--- a/app/controllers/api/AuthController.php
++++ b/app/controllers/api/AuthController.php
+@@ -40,19 +40,24 @@ class AuthController extends BaseApiController
+     public function store()
+     {
+         // get inputs from the api
++        $email = Request::get('email');
+         $username = Request::get('username');
+         $password = Request::get('password');
+ 
+         // determine whether username or email
+-        $identifier = filter_var(Input::get('email'), FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+-        $credentials = array($identifier => $username, 'password' => $password);
++        if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
++            $identifier = 'email';
++            $credentials = array('email' => $email, 'password' => $password); }
++
++        else {
++            $identifier = 'username';
++            $credentials = array('username' => $username, 'password' => $password); }
+ 
+         // check if creds are valid
+         if (Auth::validate($credentials)) {
+ 
+             // get the relevant user
+-            $user = \User::where($identifier, '=', $username)
+-                ->first();
++            $user = \User::where($identifier, '=', $identifier == 'email' ? $email : $username)->first();
+ 
+             // build the groups array and then loop through the collection to turn it into an array
+             // unserialising permissions as we go
+@@ -64,13 +69,18 @@ class AuthController extends BaseApiController
+                 array_push($user_groups, $group->toArray());
+             }
+ 
++            // get the main character
++            $character = SeatUserSetting::where('setting', '=', 'main_character_id')->where('user_id', '=', $user->id)->first();
++            $character = $character ? EveCharacterCharacterSheet::where('characterID', '=', $character->value)->first() : null;
++            $character = $character ?  $character->toArray() : array();
++
+             // return user and group info
+             return Response::json(array(
+                 'error' => false,
+                 'user' => $user->toArray(),
+-                'groups' => $user_groups),
+-                200
+-            );
++                'groups' => $user_groups,
++                'character' => $character,
++            ), 200);
+ 
+         } else {
+ 

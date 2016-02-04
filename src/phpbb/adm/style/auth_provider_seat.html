@@ -1,0 +1,18 @@
+<fieldset id="auth_seat_settings">
+	<legend>{L_SEAT_CONFIG}</legend>
+	<dl>
+		<dt><label for="seat_address">{L_SEAT_ADDRESS}{L_COLON}</label><br /><span>{L_SEAT_ADDRESS_EXPLAIN}</span></dt>
+		<dd><input type="text" id="seat_address" size="40" name="config[seat_address]" value="{AUTH_SEAT_ADDRESS}" /></dd>
+	</dl>
+	<dl>
+		<dt><label for="seat_password">{L_SEAT_TOKEN}{L_COLON}</label><br /><span>{L_SEAT_TOKEN_EXPLAIN}</span></dt>
+		<dd><input type="text" id="seat_token" size="40" name="config[seat_token]" value="{AUTH_SEAT_TOKEN}" /></dd>
+	</dl>
+	<dl>
+		<dt><label for="seat_verify_ssl">{L_SEAT_VERIFY_SSL}{L_COLON}</label><br /><span>{L_SEAT_VERIFY_SSL_EXPLAIN}</span></dt>
+		<dd>
+			<input type="radio" id="seat_verify_ssl" name="config[seat_verify_ssl]" value="on" <!-- IF AUTH_SEAT_VERIFY_SSL != 'off' || AUTH_SEAT_VERIFY_SSL -->checked<!-- ENDIF --> /> On
+			<input type="radio" id="seat_verify_ssl" name="config[seat_verify_ssl]" value="off" <!-- IF AUTH_SEAT_VERIFY_SSL == 'off' -->checked<!-- ENDIF --> /> Off
+		</dd>
+	</dl>
+</fieldset>

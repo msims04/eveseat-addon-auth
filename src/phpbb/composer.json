@@ -1,0 +1,27 @@
+{
+	"name": "msims04/seatauth",
+	"type": "phpbb-extension",
+	"description": "SeAT Authentication Extension for phpBB 3.1",
+	"homepage": "https://github.com/msims04/eveseat-addon-auth",
+	"version": "1.0.0",
+	"time": "2015-10-01",
+	"license": "MIT",
+	"authors": [{
+			"name": "Mike Sims",
+			"email": "msims04@gmail.com",
+			"homepage": "https://github.com/msims04",
+			"role": "Lead Developer"
+		}],
+	"require": {
+		"php": ">=5.3.3"
+	},
+	"require-dev": {
+		"phpbb/epv": "dev-master"
+	},
+	"extra": {
+		"display-name": "SeAT Authentication Extension",
+		"soft-require": {
+			"phpbb/phpbb": ">=3.1.0"
+		}
+	}
+}

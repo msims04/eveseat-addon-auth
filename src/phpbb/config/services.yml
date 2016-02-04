@@ -1,0 +1,9 @@
+services:
+    auth.provider.seat:
+        class: msims04\seatauth\auth\provider\seat
+        arguments:
+            - @config
+            - @dbal.conn
+            - @user
+        tags:
+            - { name: auth.provider }
