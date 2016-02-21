@@ -84,8 +84,9 @@ class AuthController extends Controller
 			if (!$item->enabled || !!$item->info->expires) { return; }
 			if ($item->info->accessMask & $accessMask != $accessMask) { return; }
 
-			return $item->characters[0]; })
-		->filter(function ($item) { return $item != null; });
+			return $item->characters; })
+		->filter(function ($item) { return $item != null; })
+		->collapse();
 	}
 
 	/**
