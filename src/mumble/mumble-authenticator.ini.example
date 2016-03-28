@@ -1,0 +1,18 @@
+[seat]
+	address = https://seat.example.com/api
+	token = token
+	verify_ssl = True
+
+[ice]
+	host = 127.0.0.1
+	port = 6502
+	secret = secret
+	slicedir = ""
+	slice = /var/lib/mumble-authenticator/Murmur.ice
+	[[raw]]
+
+[murmur]
+	servers = ""
+
+[cache]
+	[[tickers]]
