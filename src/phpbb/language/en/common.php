@@ -29,18 +29,18 @@ SOFTWARE.
 if (empty($lang) || !is_array($lang)) { $lang = []; }
 
 $lang = array_merge($lang, [
-	'LOGIN_ERROR_UNKNOWN'                  => 'An unknown error has occured.',
-	'LOGIN_ERROR_ADMIN_USERNAME'           => 'You cannot login using the admin username.',
-	'LOGIN_ERROR_INVALID_CONNECTION'       => 'There was an error communicating with the SeAT server. Please try again later.',
-	'LOGIN_ERROR_INVALID_CREDENTIALS'      => 'Those credentials are invalid.',
-	'LOGIN_ERROR_INVALID_MAIN_CHARACTER'   => 'That account does not have valid main character set.',
-	'LOGIN_ERROR_INVALID_CHARACTER_ACCESS' => 'You are not authorized to use this service.',
+	'LOGIN_ERROR_UNKNOWN'                     => 'An unknown error has occured.',
+	'LOGIN_ERROR_ADMIN_USERNAME'              => 'You cannot login using the admin username.',
+	'LOGIN_ERROR_INVALID_CONNECTION'          => 'There was an error communicating with the SeAT server. Please try again later.',
+	'LOGIN_ERROR_INVALID_CREDENTIALS'         => 'Those credentials are invalid.',
+	'LOGIN_ERROR_NO_MAIN_CHARACTER_SET'       => 'Your account does not have a main character set in SeAT.',
+	'LOGIN_ERROR_MAIN_CHARACTER_UNAUTHORIZED' => 'Your characters is not authorized to use this service.',
 
-	'SEAT_CONFIG'                          => 'SeAT API Configuration',
-	'SEAT_ADDRESS'                         => 'Address',
-	'SEAT_ADDRESS_EXPLAIN'                 => 'The API application\'s auth address. (e.g. https://seat.example.com/api/ex/auth)',
-	'SEAT_TOKEN'                           => 'Token',
-	'SEAT_TOKEN_EXPLAIN'                   => 'The API application\'s authentication token.',
-	'SEAT_VERIFY_SSL'                      => 'Verify SSL Certificate',
-	'SEAT_VERIFY_SSL_EXPLAIN'              => 'Only turn this off if you are using a self-signed certificate.',
+	'SEAT_CONFIG'                             => 'SeAT API Configuration',
+	'SEAT_ADDRESS'                            => 'Address',
+	'SEAT_ADDRESS_EXPLAIN'                    => 'The API application\'s auth address. (e.g. https://seat.example.com/api/ex/auth)',
+	'SEAT_TOKEN'                              => 'Token',
+	'SEAT_TOKEN_EXPLAIN'                      => 'The API application\'s authentication token.',
+	'SEAT_VERIFY_SSL'                         => 'Verify SSL Certificate',
+	'SEAT_VERIFY_SSL_EXPLAIN'                 => 'Only turn this off if you are using a self-signed certificate.',
 ]);

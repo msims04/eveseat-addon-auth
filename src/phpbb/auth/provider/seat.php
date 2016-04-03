@@ -51,7 +51,8 @@ class seat extends \phpbb\auth\provider\base
 				'status'    => LOGIN_ERROR_PASSWORD,
 				'error_msg' => 'NO_PASSWORD_SUPPLIED',
 				'user_row'  => ['user_id' => ANONYMOUS],
-			]; }
+			];
+		}
 
 		// Do not allow empty usernames.
 		if (!$username) {
@@ -59,7 +60,8 @@ class seat extends \phpbb\auth\provider\base
 				'status'    => LOGIN_ERROR_USERNAME,
 				'error_msg' => 'LOGIN_ERROR_USERNAME',
 				'user_row'  => ['user_id' => ANONYMOUS],
-			]; }
+			];
+		}
 
 		// Do not allow the default admin to log in.
 		if ($username == 'admin') {
@@ -67,7 +69,8 @@ class seat extends \phpbb\auth\provider\base
 				'status'    => LOGIN_ERROR_USERNAME,
 				'error_msg' => 'LOGIN_ERROR_ADMIN_USERNAME',
 				'user_row'  => ['user_id' => ANONYMOUS],
-			]; }
+			];
+		}
 
 		// Find a phpbb user incase someone is trying to login with their
 		// character name. Use the user's email address instead to login.
@@ -75,25 +78,29 @@ class seat extends \phpbb\auth\provider\base
 		$sth = $this->db->sql_query(sprintf($sqlByUsername, $this->db->sql_escape($username)));
 		$phpbb_user = $this->db->sql_fetchrow($sth);
 		$this->db->sql_freeresult($sth);
-		if ($phpbb_user) { $username = $phpbb_user['user_email']; }
+
+		if ($phpbb_user) {
+			$username = $phpbb_user['user_email'];
+		}
 
 		// Get the user details from seat.
 		$user = $this->authenticateUser($username, $password);
 
 		if (is_integer($user)) {
 			switch ($user) {
-				case 1001: $error = 'LOGIN_ERROR_INVALID_CONNECTION';       break;
-				case 1002: $error = 'LOGIN_ERROR_INVALID_CREDENTIALS';      break;
-				case 1003: $error = 'LOGIN_ERROR_INVALID_MAIN_CHARACTER';    break;
-				case 1005: $error = 'LOGIN_ERROR_INVALID_CHARACTER_ACCESS'; break;
-				default:   $error = 'LOGIN_ERROR_UNKNOWN';                  break;
+				case 1001: $error = 'LOGIN_ERROR_INVALID_CONNECTION';          break;
+				case 1002: $error = 'LOGIN_ERROR_INVALID_CREDENTIALS';         break;
+				case 1003: $error = 'LOGIN_ERROR_NO_MAIN_CHARACTER_SET';       break;
+				case 1004: $error = 'LOGIN_ERROR_MAIN_CHARACTER_UNAUTHORIZED'; break;
+				default:   $error = 'LOGIN_ERROR_UNKNOWN';                     break;
 			};
 
 			return [
 				'status'    => LOGIN_ERROR_EXTERNAL_AUTH,
 				'error_msg' => $error,
 				'user_row'  => ['user_id' => ANONYMOUS],
-			]; }
+			];
+		}
 
 		// Return the phpbb user if it was already found earlier.
 		if ($phpbb_user) {
@@ -101,7 +108,8 @@ class seat extends \phpbb\auth\provider\base
 				'status'    => LOGIN_SUCCESS,
 				'error_msg' => false,
 				'user_row'  => $phpbb_user,
-			]; }
+			];
+		}
 
 		// Find a phpbb user using the seat user's character name.
 		$sth = $this->db->sql_query(sprintf($sqlByUsername, $this->db->sql_escape($user['characterName'])));
@@ -113,15 +121,16 @@ class seat extends \phpbb\auth\provider\base
 				'status'    => LOGIN_SUCCESS,
 				'error_msg' => false,
 				'user_row'  => $phpbb_user,
-			]; }
+			];
+		}
 
 		// Create a new phpbb user if one wasn't found.
 		$result = user_add([
 			'username'      => $user['characterName'],
 			'user_password' => phpbb_hash(openssl_random_pseudo_bytes(256)),
 			'user_email'    => $user['userEmail'],
-			'group_id'      => $user['userIsSuperuser'] ? 5 : 2,
-			'user_type'     => $user['userIsSuperuser'] ? 3 : USER_NORMAL,
+			'group_id'      => in_array('Superuser', $user['userRoles']) ? 5 : 2,
+			'user_type'     => in_array('Superuser', $user['userRoles']) ? 3 : USER_NORMAL,
 		]);
 
 		// Return the newly created user.
@@ -211,11 +220,11 @@ class seat extends \phpbb\auth\provider\base
 	private function authenticateSession($user)
 	{
 		curl_setopt_array(($curl = curl_init()), [
-			CURLOPT_URL            => "{$this->config['seat_address']}/session-good",
+			CURLOPT_URL            => "{$this->config['seat_address']}/authorized",
 			CURLOPT_HTTPHEADER     => [
 				"X-Token: {$this->config['seat_token']}",
 				"service: phpbb",
-				"email: {$user['user_email']}",
+				"username: {$user['user_email']}",
 				"character: {$user['username']}",
 			],
 			CURLOPT_POST           => true,
@@ -227,7 +236,10 @@ class seat extends \phpbb\auth\provider\base
 		$response = json_decode(curl_exec($curl), true);
 		curl_close($curl);
 
-		if (!$response || !$response['result']) { return false; }
+		if (!$response || !$response['result']) {
+			return false;
+		}
+
 		return true;
 	}
 

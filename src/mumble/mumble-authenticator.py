@@ -90,6 +90,7 @@ class App():
 
 			def __init__(self, config):
 				self.config = config
+				self.users  = {}
 
 			def getCorporationTicker(self, corporationID):
 				# Get the corporation ticker from the config file.
@@ -103,83 +104,42 @@ class App():
 					ticker = root.find('.//ticker').text
 					self.config['cache']['tickers'][str(corporationID)] = ticker
 
-					# Update list of corporation tickers in the configuration file.
-					try:
-						self.config.write()
-
-					except Exception, e:
-						exception(e)
-						raise
+					# Update the list of corporation tickers in the configuration file.
+					self.config.write()
 
 					return ticker
 
 				except:
 					return '-----'
 
-			def isRole(self, id, roleName):
-				try:
-					verify   = self.config['seat']['verify_ssl'] == 'True'
-					headers  = {'X-Token': self.config['seat']['token']}
-					address  = self.config['seat']['address'] + ('/v1/user/%s' % id)
-
-					response = requests.get(address, headers = headers, verify = verify)
-					response = response.json()
-
-					for role in response['roles']:
-						if role['title'] == roleName:
-							return True
-
-					return False
-
-				except Exception, e:
-					logger.critical('Authentication error: Could not retrieve roles from SeAT.')
-					logger.exception(e)
-					return False
-
-			def isAdmin(self, id):
-				return self.isRole(id, 'MumbleAdmin')
-
-			def isFC(self, id):
-				return self.isRole(id, 'FC')
-
-			def isDiplomat(self, id):
-				return self.isRole(id, 'Diplomat')
-
-			def isLeadership(self, id):
-				return self.isRole(id, 'Leadership')
-
-			def isRecruiter(self, id):
-				return self.isRole(id, 'Recruiter')
-
-			def authenticate(self, username, password, certificates, certhash, cerstrong, newname):
+			def authenticate(self, username, pw, certificates, certhash, cerstrong, current = None):
 				logger.info('A client (%s:%s) has connected.' % (username, certhash))
 
 				# Do not allow empty usernames.
 				if username == None:
-					if not quiet: info('Authentication failed: The client did not provide a username.')
+					logger.info('Authentication failed: The client did not provide a username.')
 					return (-1, None, None)
 
 				# Do not allow empty passwords.
-				if password == None:
-					if not quiet: info('Authentication failed: The client did not provide a password.')
+				if pw == None:
+					logger.info('Authentication failed: The client did not provide a password.')
 					return (-1, None, None)
-
-				# Authenticate with either a username or an email address.
-				if re.match('[^@]+@[^@]+\.[^@]+', username): headers = {'email': username, 'password': password}
-				else: headers = {'username': username, 'password': password}
 
 				# Use requests to communicate with the seat api.
 				try:
-					address            = self.config['seat']['address'   ] + '/ex/auth/login'
-					verify             = self.config['seat']['verify_ssl'] == 'True'
-					headers['X-Token'] = self.config['seat']['token'     ]
-					headers['service'] = 'mumble'
+					address             = self.config['seat']['address'   ] + '/ex/auth/login'
+					verify              = self.config['seat']['verify_ssl'] == 'True'
+					headers             = {}
+					headers['username'] = username
+					headers['password'] = pw
+					headers['X-Token' ] = self.config['seat']['token']
+					headers['service' ] = 'mumble'
 
 					response = requests.post(address, headers = headers, verify = verify)
 					response = response.json()
 
 				except Exception, e:
-					logger.critical('Authentication failed: The SeAT server did not provide a valid response.')
+					logger.info('Authentication failed: The SeAT server did not provide a valid response.')
 					logger.exception(e)
 					return (-1, None, None)
 
@@ -197,11 +157,12 @@ class App():
 					return (-1, None, None)
 
 				# Get character information.
+				guest         = bool(response['data']['guest'          ])
 				userID        = int (response['data']['userID'         ])
+				userRoles     =     (response['data']['userRoles'      ])
 				characterID   = int (response['data']['characterID'    ])
 				characterName = str (response['data']['characterName'  ])
 				corporationID = int (response['data']['corporationID'  ])
-				superuser     = bool(response['data']['userIsSuperuser'])
 				ticker        = self.getCorporationTicker(corporationID)
 
 				# Initialize username and groups.
@@ -209,25 +170,32 @@ class App():
 				mumbleTags   = []
 				mumbleName   = ""
 
-				if self.isAdmin(userID):
-					mumbleGroups.append('admin')
-					mumbleTags  .append('Admin')
+				if guest:
+					mumbleGroups.append('guest')
+					mumbleTags  .append('Guest')
 
-				if self.isFC(userID):# and not 'admin' in mumbleGroups:
-					mumbleGroups.append('fc')
-					mumbleTags  .append('FC')
+				else:
+					if 'MumbleAdmin' in userRoles:
+						mumbleGroups.append('admin')
+						mumbleTags  .append('Admin')
 
-				if self.isDiplomat(userID):# and not 'admin' in mumbleGroups:
-					mumbleGroups.append('diplomat')
-					mumbleTags  .append('Diplomat')
+					if 'Diplomat' in userRoles:
+						mumbleGroups.append('diplomat')
+						mumbleTags.append('Diplomat')
 
-				if self.isLeadership(userID):# and not 'admin' in mumbleGroups:
-					mumbleGroups.append('leadership')
-					mumbleTags  .append('Leadership')
+					if 'FC' in userRoles:
+						mumbleGroups.append('fc')
+						mumbleTags.append('FC')
 
-				if self.isRecruiter(userID):# and not 'admin' in mumbleGroups:
-					mumbleGroups.append('recruiter')
-					mumbleTags  .append('Recruiter')
+					#if 'Leadership' in userRoles:
+						mumbleGroups.append('leadership')
+						mumbleTags.append('Leadership')
+
+					#if 'Recruiter' in userRoles:
+						mumbleGroups.append('recruiter')
+						mumbleTags.append('Recruiter')
+
+					mumbleGroups.append('member')
 
 				# Format the users name.
 				if len(mumbleTags): mumbleName = '[{0}] {1} ({2})'.format(ticker, characterName, '|'.join(mumbleTags))
@@ -235,10 +203,17 @@ class App():
 
 				# Return the authenticated user.
 				logger.info('Authentication successful: Returning "%s" as the username.' % mumbleName)
+				logger.info('User belongs to groups: %s', mumbleGroups)
+
+				self.users[characterID] = {'name': mumbleName, 'groups': mumbleGroups}
+
 				return (characterID, mumbleName, mumbleGroups)
 
 			def getInfo(self, id, info, current = None):
-				return (False, None)
+				result = {}
+				result[Murmur.UserInfo.UserName] = self.users[id]['name']
+
+				return (True, result)
 
 			def nameToId(self, name, current = None):
 				return -2
@@ -283,7 +258,7 @@ class App():
 				if self.config['ice']['secret']:
 					context.put('secret', str(self.config['ice']['secret']))
 
-				logger.info('Connecting to Ice server (%s:%d).'          % (str(self.config['ice']['host']), int(self.config['ice']['port'])))
+				logger.info('Connecting to Ice server (%s:%d).'           % (str(self.config['ice']['host']), int(self.config['ice']['port'])))
 				proxy = communicator.stringToProxy('Meta:tcp -h %s -p %d' % (str(self.config['ice']['host']), int(self.config['ice']['port'])))
 				self.meta = Murmur.MetaPrx.uncheckedCast(proxy)
 
@@ -322,11 +297,13 @@ class App():
 
 				except (Murmur.InvalidSecretException, Ice.UnknownUserException, Ice.ConnectionRefusedException), e:
 					if isinstance(e, Ice.ConnectionRefusedException):
-						logger.critical('The server refused the connection.')
+						logger.error('The server refused the connection.')
 						self.resetConnectedStatus()
+
 					elif isinstance(e, Murmur.InvalidSecretException) or isinstance(e, Ice.UnknownUserException) and (e.unknown == 'Murmur::InvalidSecretException'):
-						logger.critical('Your Ice secret is invalid.')
+						logger.error('Your Ice secret is invalid.')
 						self.resetConnectedStatus()
+
 					else:
 						exception(e)
 						self.resetConnectedStatus()

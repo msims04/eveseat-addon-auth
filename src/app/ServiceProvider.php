@@ -19,7 +19,7 @@ class ServiceProvider extends LaravelServiceProvider {
 			__DIR__ . '/../config/' => config_path(),
 		]);
 
-		//$this->mergeConfigFrom(__DIR__ . '/../config/addon.auth.php', 'addon.auth');
+		$this->mergeConfigFrom(__DIR__ . '/../config/addon.auth.php', 'addon.auth');
 	}
 
 	/**

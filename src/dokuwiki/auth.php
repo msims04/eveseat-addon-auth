@@ -39,22 +39,25 @@ class auth_plugin_authseat extends DokuWiki_Auth_Plugin
 		if (!empty($user) && !empty($pass)) {
 			if (is_integer($user = $this->authenticateUser($user, $pass))) {
 				switch ($user) {
-					case 1001: msg($this->getLang('LOGIN_ERROR_INVALID_CONNECTION'      )); break;
-					case 1002: msg($this->getLang('LOGIN_ERROR_INVALID_CREDENTIALS'     )); break;
-					case 1003: msg($this->getLang('LOGIN_ERROR_INVALID_MAIN_CHARACTER'  )); break;
-					case 1005: msg($this->getLang('LOGIN_ERROR_INVALID_CHARACTER_ACCESS')); break;
-					default:   msg($this->getLang('LOGIN_ERROR_UNKNOWN'                 )); break;
+					case 1001: msg($this->getLang('LOGIN_ERROR_INVALID_CONNECTION'         )); break;
+					case 1002: msg($this->getLang('LOGIN_ERROR_INVALID_CREDENTIALS'        )); break;
+					case 1003: msg($this->getLang('LOGIN_ERROR_NO_MAIN_CHARACTER_SET'      )); break;
+					case 1004: msg($this->getLang('LOGIN_ERROR_MAIN_CHARACTER_UNAUTHORIZED')); break;
+					default:   msg($this->getLang('LOGIN_ERROR_UNKNOWN'                    )); break;
 				};
 
 				auth_logoff();
-				return false; }
+				return false;
+			}
 
 			$this->setSession($user['characterName'], $user['userEmail'], $user['userIsSuperuser']);
-			return true; }
+			return true;
+		}
 
 		// Do not continue if there is no session.
 		if (!isset($_SESSION[DOKU_COOKIE]['auth']['info'])) {
-			auth_logoff(); return false; }
+			auth_logoff(); return false;
+		}
 
 		// Attempt to authenticate using the session.
 		$character = $_SESSION[DOKU_COOKIE]['auth']['info']['name'];
@@ -63,18 +66,20 @@ class auth_plugin_authseat extends DokuWiki_Auth_Plugin
 		if (!empty($character) && !empty($email)) {
 			if (is_integer($user = $this->authenticateSession($character, $email))) {
 				switch ($user) {
-					case 1001: msg($this->getLang('LOGIN_ERROR_INVALID_CONNECTION'      )); break;
-					case 1002: msg($this->getLang('LOGIN_ERROR_INVALID_CREDENTIALS'     )); break;
-					case 1003: msg($this->getLang('LOGIN_ERROR_INVALID_MAIN_CHARACTER'  )); break;
-					case 1005: msg($this->getLang('LOGIN_ERROR_INVALID_CHARACTER_ACCESS')); break;
-					default:   msg($this->getLang('LOGIN_ERROR_UNKNOWN'                 )); break;
+					case 1001: msg($this->getLang('LOGIN_ERROR_INVALID_CONNECTION'         )); break;
+					case 1002: msg($this->getLang('LOGIN_ERROR_INVALID_CREDENTIALS'        )); break;
+					case 1003: msg($this->getLang('LOGIN_ERROR_NO_MAIN_CHARACTER_SET'      )); break;
+					case 1004: msg($this->getLang('LOGIN_ERROR_MAIN_CHARACTER_UNAUTHORIZED')); break;
+					default:   msg($this->getLang('LOGIN_ERROR_UNKNOWN'                    )); break;
 				};
 
 				auth_logoff();
-				return false; }
+				return false;
+			}
 
-			$this->setSession($user['characterName'], $user['userEmail'], $user['userIsSuperuser']);
-			return true; }
+			$this->setSession($user['characterName'], $user['userEmail'], in_array('Superuser', $user['userRoles']));
+			return true;
+		}
 
 		auth_logoff();
 		return false;
@@ -141,8 +146,13 @@ class auth_plugin_authseat extends DokuWiki_Auth_Plugin
 		$response = json_decode(curl_exec($curl), true);
 		curl_close($curl);
 
-		if (!$response          ) { return 1001; }
-		if (!$response['result']) { return $response['errno']; }
+		if (!$response) {
+			return 1001;
+		}
+
+		if (!$response['result']) {
+			return $response['errno'];
+		}
 
 		return $response['data'];
 	}
@@ -158,12 +168,12 @@ class auth_plugin_authseat extends DokuWiki_Auth_Plugin
 		global $conf; $settings = $conf['plugin']['authseat'];
 
 		curl_setopt_array(($curl = curl_init()), [
-			CURLOPT_URL            => "{$settings['seat_address']}/session-good",
+			CURLOPT_URL            => "{$settings['seat_address']}/authorized",
 			CURLOPT_HTTPHEADER     => [
 				"X-Token: {$settings['seat_token']}",
 				"service: dokuwiki",
 				"character: {$character}",
-				"email: {$email}",
+				"username: {$email}",
 			],
 			CURLOPT_POST           => true,
 			CURLOPT_RETURNTRANSFER => true,
@@ -174,8 +184,13 @@ class auth_plugin_authseat extends DokuWiki_Auth_Plugin
 		$response = json_decode(curl_exec($curl), true);
 		curl_close($curl);
 
-		if (!$response          ) { return 1001; }
-		if (!$response['result']) { return $response['errno']; }
+		if (!$response) {
+			return 1001;
+		}
+
+		if (!$response['result']) {
+			return $response['errno'];
+		}
 
 		return $response['data'];
 	}
