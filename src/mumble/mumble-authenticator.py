@@ -187,11 +187,11 @@ class App():
 						mumbleGroups.append('fc')
 						mumbleTags.append('FC')
 
-					#if 'Leadership' in userRoles:
+					if 'Leadership' in userRoles:
 						mumbleGroups.append('leadership')
 						mumbleTags.append('Leadership')
 
-					#if 'Recruiter' in userRoles:
+					if 'Recruiter' in userRoles:
 						mumbleGroups.append('recruiter')
 						mumbleTags.append('Recruiter')
 
